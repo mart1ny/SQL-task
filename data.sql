@@ -1,6 +1,8 @@
--- Test data population for e-commerce analytics project
+-- Задание 2: заполнение данными (минимум 20 записей в каждой таблице)
+-- Все INSERT сгруппированы по таблицам и выполняются в транзакции.
 START TRANSACTION;
 
+-- Пользователи (users) — 20 клиентов из разных городов
 INSERT INTO users (username, email, registration_date, city, total_orders, total_spent) VALUES
 ('alice', 'alice@example.com', '2022-11-05', 'Moscow', 15, 1850.40),
 ('bob', 'bob@example.com', '2022-12-12', 'Saint Petersburg', 18, 2145.60),
@@ -23,6 +25,7 @@ INSERT INTO users (username, email, registration_date, city, total_orders, total
 ('steve', 'steve@example.com', '2023-08-28', 'Izhevsk', 5, 560.60),
 ('trudy', 'trudy@example.com', '2023-09-06', 'Barnaul', 4, 445.30);
 
+-- Категории товаров (categories) с иерархией
 INSERT INTO categories (category_name, parent_category_id) VALUES
 ('Electronics', NULL),
 ('Computers', 1),
@@ -45,6 +48,7 @@ INSERT INTO categories (category_name, parent_category_id) VALUES
 ('Office Supplies', NULL),
 ('Automotive', NULL);
 
+-- Товары (products) с характеристиками и принадлежностью к категориям
 INSERT INTO products (product_name, category_id, price, stock_quantity, average_rating, created_at) VALUES
 ('Ultrabook Aero 13', 2, 899.99, 45, 4.7, '2023-01-15'),
 ('Gaming Laptop Titan', 9, 1299.50, 30, 4.9, '2023-02-01'),
@@ -67,6 +71,7 @@ INSERT INTO products (product_name, category_id, price, stock_quantity, average_
 ('Smart Coffee Maker', 6, 219.99, 60, 4.3, '2023-07-15'),
 ('Dash Cam Guardian', 20, 159.00, 85, 4.4, '2023-07-28');
 
+-- Заказы (orders) с разными статусами и способами оплаты
 INSERT INTO orders (user_id, order_date, total_amount, status, payment_method) VALUES
 (1, '2023-08-02 10:15:00', 1024.50, 'delivered', 'card'),
 (2, '2023-08-04 15:20:00', 845.99, 'delivered', 'card'),
@@ -89,6 +94,7 @@ INSERT INTO orders (user_id, order_date, total_amount, status, payment_method) V
 (19, '2023-08-24 20:00:00', 238.70, 'cancelled', 'card'),
 (20, '2023-08-25 11:15:00', 199.95, 'pending', 'cash');
 
+-- Позиции заказов (order_items) связывают заказы и товары
 INSERT INTO order_items (order_id, product_id, quantity, price_at_time) VALUES
 (1, 1, 1, 899.99),
 (1, 11, 2, 62.25),
@@ -132,6 +138,7 @@ INSERT INTO order_items (order_id, product_id, quantity, price_at_time) VALUES
 (20, 11, 2, 89.90),
 (20, 5, 1, 249.90);
 
+-- Отзывы (reviews), фиксируем рейтинг, текст и полезность
 INSERT INTO reviews (user_id, product_id, rating, review_text, created_at, helpful_count) VALUES
 (1, 1, 5, 'Excellent ultrabook for travel.', '2023-08-05 11:00:00', 12),
 (2, 4, 4, 'Solid phone with great camera.', '2023-08-06 13:10:00', 8),
@@ -154,6 +161,7 @@ INSERT INTO reviews (user_id, product_id, rating, review_text, created_at, helpf
 (19, 19, 4, 'Coffee maker automates mornings.', '2023-08-23 07:35:00', 4),
 (20, 20, 4, 'Dash cam footage is crisp.', '2023-08-24 21:15:00', 2);
 
+-- Исторические ежемесячные отчёты (monthly_reports) — база для процедуры
 INSERT INTO monthly_reports (report_month, total_orders, total_revenue, average_order_value, new_users, delivered_orders, cancelled_orders) VALUES
 ('2023-01-01', 220, 185000.00, 840.91, 120, 200, 5),
 ('2023-02-01', 240, 198500.00, 827.08, 130, 218, 6),

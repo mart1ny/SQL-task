@@ -1,6 +1,7 @@
--- Analytical queries, stored procedure, and helper function
+-- Задание 3: аналитические запросы (10 штук), хранимая процедура и функция.
+-- Ниже по порядку реализованы все пункты из списка требований.
 
--- 1. Top-5 most popular products by quantity sold (window rank + revenue)
+-- 1. Топ-5 самых популярных товаров (агрегация + оконная функция ранжирования)
 WITH product_totals AS (
     SELECT
         p.product_id,
@@ -19,7 +20,7 @@ FROM ranked_products
 WHERE popularity_rank <= 5
 ORDER BY popularity_rank, product_name;
 
--- 2. Users with the largest purchase amount over the last month
+-- 2. Пользователи с максимальной суммой покупок за последний месяц
 SELECT
     u.user_id,
     u.username,
@@ -33,7 +34,7 @@ WHERE o.order_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
 GROUP BY u.user_id, u.username, u.city
 ORDER BY last_month_spent DESC;
 
--- 3. Average order check by month for the last year
+-- 3. Средний чек по месяцам за последний год (GROUP BY + фильтр по дате)
 SELECT
     DATE_FORMAT(o.order_date, '%Y-%m') AS order_month,
     COUNT(*) AS order_count,
@@ -44,7 +45,7 @@ WHERE o.order_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
 GROUP BY DATE_FORMAT(o.order_date, '%Y-%m')
 ORDER BY order_month;
 
--- 4. Product pairs frequently bought together
+-- 4. Товары, которые чаще покупают вместе (CTE + self-join order_items)
 WITH paired_products AS (
     SELECT
         LEAST(oi1.product_id, oi2.product_id) AS product_a,
@@ -66,7 +67,7 @@ JOIN products p2 ON p2.product_id = pa.product_b
 ORDER BY pa.joint_orders DESC, product_a_name
 LIMIT 10;
 
--- 5. Sales funnel by order status
+-- 5. Воронка продаж по статусам заказов (доли через оконную функцию)
 SELECT
     status,
     COUNT(*) AS orders_count,
@@ -76,7 +77,7 @@ FROM orders
 GROUP BY status
 ORDER BY FIELD(status, 'pending', 'processing', 'shipped', 'delivered', 'cancelled');
 
--- 6. Categories with the highest revenue
+-- 6. Категории с наибольшей выручкой
 SELECT
     c.category_id,
     c.category_name,
@@ -88,7 +89,7 @@ JOIN order_items oi ON oi.product_id = p.product_id
 GROUP BY c.category_id, c.category_name
 ORDER BY category_revenue DESC;
 
--- 7. Users without orders for more than 30 days
+-- 7. Пользователи без заказов более 30 дней (LEFT JOIN + HAVING)
 SELECT
     u.user_id,
     u.username,
@@ -100,7 +101,7 @@ GROUP BY u.user_id, u.username, u.city
 HAVING last_order_date IS NULL OR last_order_date < DATE_SUB(CURDATE(), INTERVAL 30 DAY)
 ORDER BY last_order_date ASC;
 
--- 8. Seasonality of sales (average revenue by month regardless of year)
+-- 8. Сезонность продаж (агрегация по номеру месяца и средний чек)
 WITH monthly_sales AS (
     SELECT
         DATE_FORMAT(order_date, '%m') AS month_num,
@@ -119,7 +120,7 @@ SELECT
 FROM monthly_sales
 ORDER BY month_num;
 
--- 9. City ranking by user count and purchase amount
+-- 9. Рейтинг городов по пользователям и сумме покупок (окно RANK)
 WITH city_metrics AS (
     SELECT
         u.city,
@@ -139,7 +140,7 @@ SELECT
 FROM city_metrics
 ORDER BY revenue_rank, city;
 
--- 10. Comparison of current and previous month metrics
+-- 10. Сравнение текущего месяца с предыдущим (CTE + сравнение метрик)
 WITH monthly_metrics AS (
     SELECT
         DATE_FORMAT(order_date, '%Y-%m-01') AS month_start,
@@ -174,7 +175,8 @@ SELECT
 FROM current_month cm
 LEFT JOIN previous_month pm ON 1 = 1;
 
--- Stored procedure for generating monthly report
+-- Задание 4: процедура generate_monthly_report(month DATE)
+-- Считаем метрики за месяц, сохраняем их в monthly_reports и возвращаем результат.
 DELIMITER //
 DROP PROCEDURE IF EXISTS generate_monthly_report //
 CREATE PROCEDURE generate_monthly_report(IN p_month DATE)
@@ -242,7 +244,9 @@ BEGIN
 END //
 DELIMITER ;
 
--- Helper function to calculate a user rank (1..10)
+-- Задание 5: функция calculate_user_rank(user_id INT)
+-- Оценивает активность пользователя (заказы, сумма, отзывы, возраст аккаунта) и
+-- возвращает ранг 1..10.
 DELIMITER //
 DROP FUNCTION IF EXISTS calculate_user_rank //
 CREATE FUNCTION calculate_user_rank(p_user_id INT)

@@ -1,4 +1,8 @@
--- Schema definition for e-commerce analytics project
+-- Проект: аналитическая система интернет-магазина
+-- Задание 1: создание структуры БД с минимум 5 связанными таблицами
+-- В этом файле описаны все таблицы: пользователи, категории, товары, заказы,
+-- позиции заказов, отзывы и итоговая таблица monthly_reports для процедуры отчётов.
+-- Сбрасываем таблицы, чтобы скрипт был идемпотентным при повторном запуске
 DROP TABLE IF EXISTS monthly_reports;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS order_items;
@@ -7,6 +11,7 @@ DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS users;
 
+-- Пользователи (users) — основная сущность клиентов
 CREATE TABLE users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -17,6 +22,7 @@ CREATE TABLE users (
     total_spent DECIMAL(10,2) DEFAULT 0
 );
 
+-- Категории товаров с иерархией (parent_category_id)
 CREATE TABLE categories (
     category_id INT PRIMARY KEY AUTO_INCREMENT,
     category_name VARCHAR(100) NOT NULL,
@@ -24,6 +30,7 @@ CREATE TABLE categories (
     FOREIGN KEY (parent_category_id) REFERENCES categories(category_id)
 );
 
+-- Товары (products) с привязкой к категориям
 CREATE TABLE products (
     product_id INT PRIMARY KEY AUTO_INCREMENT,
     product_name VARCHAR(200) NOT NULL,
@@ -35,6 +42,7 @@ CREATE TABLE products (
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );
 
+-- Заказы (orders) — агрегируем суммы по пользователям
 CREATE TABLE orders (
     order_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -45,6 +53,7 @@ CREATE TABLE orders (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
+-- Состав заказа (order_items) — связывает заказы и товары
 CREATE TABLE order_items (
     order_item_id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT NOT NULL,
@@ -55,6 +64,7 @@ CREATE TABLE order_items (
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
+-- Отзывы (reviews) — один отзыв на товар от пользователя
 CREATE TABLE reviews (
     review_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -68,6 +78,7 @@ CREATE TABLE reviews (
     UNIQUE(user_id, product_id)
 );
 
+-- Итоговые ежемесячные отчёты, куда пишет процедура generate_monthly_report
 CREATE TABLE monthly_reports (
     report_id INT PRIMARY KEY AUTO_INCREMENT,
     report_month DATE NOT NULL UNIQUE,
